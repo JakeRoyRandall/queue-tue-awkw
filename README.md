@@ -20,4 +20,6 @@ Pass `-v warn_wait=N` to emit stderr warnings for waits strictly greater than th
 
 Pass `-v exclude=LANE[,LANE...]` to omit one or more existing lanes before scheduling. Exclusions are deduplicated, bounded to 100 lanes, and validated against the input; excluded records do not advance any lane clock or appear in summaries.
 
+Pass `-v max_wait=N` to mark customers whose wait would be strictly greater than the nonnegative threshold `N` (up to 1,000,000,000) as `left`. A left customer has blank start/end fields and does not occupy the lane, so later customers are scheduled from the unchanged lane clock. This mode adds a `status` column and, with `summary=1`, a `left_customers` column; wait warnings apply only to served customers. The default output remains unchanged when `max_wait` is omitted.
+
 The parser accepts integer minutes from 0 through 1,000,000 and lane identifiers of 1–32 letters, digits, `_`, or `-`. A lane may not accumulate beyond 1,000,000,000 minutes. It rejects malformed columns, negative or nonnumeric values, and out-of-order arrivals. It does not infer missing people, model breaks or priority lanes, or read CSV quoting; later feature stages can add those deliberately.

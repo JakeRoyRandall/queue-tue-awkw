@@ -41,4 +41,20 @@ if printf '0\t1\tA\n' | "$awk_bin" -v warn_wait=-1 -f "$script" >/dev/null 2>&1;
 if printf '0\t1\tA\n' | "$awk_bin" -v warn_wait=wat -f "$script" >/dev/null 2>&1; then exit 1; fi
 if printf '0\t1\tA\n-1\t1\tA\n' | "$awk_bin" -v warn_wait=0 -f "$script" >"$tmp/bad.out" 2>"$tmp/bad.err"; then exit 1; fi
 if grep -q warning_total "$tmp/bad.err"; then exit 1; fi
+limited=$(printf '0\t5\tA\n1\t2\tA\n5\t1\tA\n' | "$awk_bin" -v max_wait=3 -f "$script")
+test "$(printf '%s\n' "$limited" | sed -n '1p')" = 'arrival_min	service_min	lane	wait_min	start_min	end_min	status'
+test "$(printf '%s\n' "$limited" | sed -n '2p')" = '0	5	A	0	0	5	served'
+test "$(printf '%s\n' "$limited" | sed -n '3p')" = '1	2	A	4			left'
+test "$(printf '%s\n' "$limited" | sed -n '4p')" = '5	1	A	0	5	6	served'
+threshold=$(printf '0\t2\tA\n1\t1\tA\n' | "$awk_bin" -v max_wait=1 -f "$script")
+test "$(printf '%s\n' "$threshold" | sed -n '3p')" = '1	1	A	1	2	3	served'
+zero=$(printf '0\t2\tA\n1\t1\tA\n' | "$awk_bin" -v max_wait=0 -f "$script" -v summary=1)
+printf '%s\n' "$zero" | grep -q '1	1	A	1			left'
+printf '%s\n' "$zero" | grep -q 'A	1	1	2	0.00	0	2'
+if printf '0\t1\tA\n' | "$awk_bin" -v max_wait=-1 -f "$script" >/dev/null 2>&1; then exit 1; fi
+if printf '0\t1\tA\n' | "$awk_bin" -v max_wait=wat -f "$script" >/dev/null 2>&1; then exit 1; fi
+if printf '0\t1\tA\n' | "$awk_bin" -v max_wait=1000000001 -f "$script" >/dev/null 2>&1; then exit 1; fi
+near_limit=$({ i=1; while test "$i" -le 1000; do printf '0\t1000000\tA\n'; i=$((i + 1)); done; printf '0\t1000000\tA\n'; } | "$awk_bin" -v max_wait=999000000 -f "$script")
+test "$(printf '%s\n' "$near_limit" | tail -n 1)" = '0	1000000	A	1000000000			left'
+test "$(printf '%s\n' "$near_limit" | wc -l | tr -d ' ')" -eq 1002
 echo 'queue-tue CLI tests: deterministic scheduling and 4 invalid-input checks passed'
