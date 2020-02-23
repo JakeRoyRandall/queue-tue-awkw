@@ -57,4 +57,12 @@ if printf '0\t1\tA\n' | "$awk_bin" -v max_wait=1000000001 -f "$script" >/dev/nul
 near_limit=$({ i=1; while test "$i" -le 1000; do printf '0\t1000000\tA\n'; i=$((i + 1)); done; printf '0\t1000000\tA\n'; } | "$awk_bin" -v max_wait=999000000 -f "$script")
 test "$(printf '%s\n' "$near_limit" | tail -n 1)" = '0	1000000	A	1000000000			left'
 test "$(printf '%s\n' "$near_limit" | wc -l | tr -d ' ')" -eq 1002
+util=$(printf '0\t2\tA\n0\t0\tB\n5\t1\tA\n' | "$awk_bin" -v summary=1 -v utilization=1 -f "$script")
+printf '%s\n' "$util" | grep -q 'summary_lane	customers	total_service_min	mean_wait_min	max_wait_min	finish_min	busy_span_min	idle_min	utilization_percent'
+printf '%s\n' "$util" | grep -q 'A	2	3	0.00	0	6	6	3	50.00'
+printf '%s\n' "$util" | grep -q 'B	1	0	0.00	0	0	0	0	0.00'
+left_util=$(printf '0\t5\tA\n1\t1\tA\n5\t1\tA\n' | "$awk_bin" -v summary=1 -v utilization=1 -v max_wait=3 -f "$script")
+printf '%s\n' "$left_util" | grep -q 'A	2	1	6	0.00	0	6	6	0	100.00'
+if printf '0\t1\tA\n' | "$awk_bin" -v utilization=1 -f "$script" >/dev/null 2>&1; then exit 1; fi
+if printf '0\t1\tA\n' | "$awk_bin" -v summary=1 -v utilization=wat -f "$script" >/dev/null 2>&1; then exit 1; fi
 echo 'queue-tue CLI tests: deterministic scheduling and 4 invalid-input checks passed'
