@@ -70,4 +70,15 @@ only_summary=$(printf '0\t2\tA\n1\t1\tA\n2\t3\tB\n' | "$awk_bin" -v summary=1 -v
 test "$only_summary" = "$(printf '%s\n' "$full_summary" | tail -n 3)"
 if printf '0\t1\tA\n' | "$awk_bin" -v summary_only=1 -f "$script" >/dev/null 2>&1; then exit 1; fi
 if printf '0\t1\tA\n' | "$awk_bin" -v summary=1 -v summary_only=wat -f "$script" >/dev/null 2>&1; then exit 1; fi
+closing=$(printf '0\t2\tA\n2\t1\tA\n' | "$awk_bin" -v close_at=2 -f "$script")
+test "$(printf '%s\n' "$closing" | sed -n '1p')" = 'arrival_min	service_min	lane	wait_min	start_min	end_min	status'
+test "$(printf '%s\n' "$closing" | sed -n '2p')" = '0	2	A	0	0	2	served'
+test "$(printf '%s\n' "$closing" | sed -n '3p')" = '2	1	A	0			closed'
+after_close=$(printf '0\t3\tA\n1\t1\tA\n2\t1\tA\n3\t1\tA\n' | "$awk_bin" -v close_at=2 -f "$script")
+test "$(printf '%s\n' "$after_close" | sed -n '3p')" = '1	1	A	0	1	2	served'
+test "$(printf '%s\n' "$after_close" | sed -n '5p')" = '3	1	A	0			closed'
+close_summary=$(printf '0\t3\tA\n1\t1\tA\n3\t1\tA\n' | "$awk_bin" -v summary=1 -v close_at=2 -f "$script")
+printf '%s\n' "$close_summary" | grep -q 'A	1	0	2	1	0.00	0	2'
+if printf '0\t1\tA\n' | "$awk_bin" -v close_at=-1 -f "$script" >/dev/null 2>&1; then exit 1; fi
+if printf '0\t1\tA\n' | "$awk_bin" -v close_at=wat -f "$script" >/dev/null 2>&1; then exit 1; fi
 echo 'queue-tue CLI tests: deterministic scheduling and 4 invalid-input checks passed'

@@ -26,4 +26,6 @@ Pass `-v utilization=1` together with `-v summary=1` for three additional per-la
 
 Pass `-v summary_only=1` together with `-v summary=1` to emit only the summary header and lane rows. This is useful when piping aggregate results; all records are still validated and scheduled, exclusions, max-wait statuses, warnings, and utilization columns retain their normal semantics. The option is rejected without `summary=1` or with another value.
 
+Pass `-v close_at=N` to mark customers whose served end minute would exceed the nonnegative closing threshold `N` (up to 1,000,000,000) as `closed`. Closing is checked after `max_wait`; closed customers have blank start/end fields and do not occupy the lane. Either `close_at` or `max_wait` adds the status column. With `summary=1`, status mode adds separate `left_customers` and `closed_customers` counts; utilization metrics consider served customers only.
+
 The parser accepts integer minutes from 0 through 1,000,000 and lane identifiers of 1–32 letters, digits, `_`, or `-`. A lane may not accumulate beyond 1,000,000,000 minutes. It rejects malformed columns, negative or nonnumeric values, and out-of-order arrivals. It does not infer missing people, model breaks or priority lanes, or read CSV quoting; later feature stages can add those deliberately.
