@@ -81,4 +81,11 @@ close_summary=$(printf '0\t3\tA\n1\t1\tA\n3\t1\tA\n' | "$awk_bin" -v summary=1 -
 printf '%s\n' "$close_summary" | grep -q 'A	1	0	2	1	0.00	0	2'
 if printf '0\t1\tA\n' | "$awk_bin" -v close_at=-1 -f "$script" >/dev/null 2>&1; then exit 1; fi
 if printf '0\t1\tA\n' | "$awk_bin" -v close_at=wat -f "$script" >/dev/null 2>&1; then exit 1; fi
+opening=$(printf '0\t2\tA\n5\t1\tA\n' | "$awk_bin" -v open_at=3 -f "$script")
+test "$(printf '%s\n' "$opening" | sed -n '2p')" = '0	2	A	3	3	5'
+test "$(printf '%s\n' "$opening" | sed -n '3p')" = '5	1	A	0	5	6'
+opening_status=$(printf '0\t2\tA\n' | "$awk_bin" -v open_at=3 -v max_wait=2 -f "$script")
+test "$(printf '%s\n' "$opening_status" | sed -n '2p')" = '0	2	A	3			left'
+if printf '0\t1\tA\n' | "$awk_bin" -v open_at=4 -v close_at=3 -f "$script" >/dev/null 2>&1; then exit 1; fi
+if printf '0\t1\tA\n' | "$awk_bin" -v open_at=wat -f "$script" >/dev/null 2>&1; then exit 1; fi
 echo 'queue-tue CLI tests: deterministic scheduling and 4 invalid-input checks passed'
