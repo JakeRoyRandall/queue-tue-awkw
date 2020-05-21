@@ -1,0 +1,15 @@
+#!/usr/bin/awk -f
+# Queue Tue: a grocery queue receipt analyzer for awkward 2020 errands.
+BEGIN { FS = "\t"; OFS = "\t"; print "arrival_min\tservice_min\tlane\twait_min\tstart_min\tend_min"; previous = -1 }
+function fail(message) { print "error: " message > "/dev/stderr"; exit 2 }
+{
+    if (NF != 3) fail("each record must have exactly 3 tab-separated columns")
+    if ($1 !~ /^[0-9]+$/ || $2 !~ /^[0-9]+$/ || length($1) > 7 || length($2) > 7 || ($1 + 0) > 1000000 || ($2 + 0) > 1000000) fail("arrival and service must be integers from 0 to 1000000")
+    if ($3 !~ /^[A-Za-z0-9_-]{1,32}$/) fail("lane must be 1-32 letters, digits, _ or -")
+    arrival = $1 + 0; service = $2 + 0; lane = $3
+    if (previous >= 0 && arrival < previous) fail("arrival records must be nondecreasing; input order breaks stable tie ordering")
+    previous = arrival
+    start = (next_free[lane] > arrival ? next_free[lane] : arrival)
+    wait = start - arrival; end = start + service; if (end > 1000000000) fail("lane schedule exceeds 1000000000 minutes"); next_free[lane] = end
+    printf "%d\t%d\t%s\t%d\t%d\t%d\n", arrival, service, lane, wait, start, end
+}
