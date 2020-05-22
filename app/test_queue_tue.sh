@@ -20,4 +20,11 @@ if printf '1000001\t1\tA\n' | "$awk_bin" -f "$script" >/dev/null 2>&1; then exit
 same=$(printf '0\t2\tA\n0\t3\tA\n' | "$awk_bin" -f "$script")
 test "$(printf '%s\n' "$same" | sed -n '2p')" = '0	2	A	0	0	2'
 test "$(printf '%s\n' "$same" | sed -n '3p')" = '0	3	A	2	2	5'
+summary=$(printf '0\t5\tA\n1\t2\tA\n2\t3\tB\n' | "$awk_bin" -v summary=1 -f "$script")
+printf '%s\n' "$summary" | grep -q 'A	2	7	2.00	4	7'
+printf '%s\n' "$summary" | grep -q 'B	1	3	0.00	0	5'
+test "$(printf '' | "$awk_bin" -v summary=1 -f "$script" | tail -n 1)" = 'summary_lane	customers	total_service_min	mean_wait_min	max_wait_min	finish_min'
+if printf '0\t1\tA\n' | "$awk_bin" -v summary=wat -f "$script" 2>/dev/null | grep -q summary_lane; then exit 1; fi
+default=$(printf '0\t1\tA\n' | "$awk_bin" -f "$script")
+test "$(printf '%s\n' "$default" | wc -l | tr -d ' ')" -eq 2
 echo 'queue-tue CLI tests: deterministic scheduling and 4 invalid-input checks passed'
