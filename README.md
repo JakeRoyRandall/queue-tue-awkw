@@ -16,4 +16,6 @@ sh app/test_queue_tue.sh
 
 Pass `-v summary=1` for a second receipt section with per-lane customer count, total service, mean wait to two decimals, maximum wait, and finish minute. Other summary values are rejected; the default output is unchanged.
 
+Pass `-v warn_wait=N` to emit stderr warnings for waits strictly greater than the nonnegative threshold `N` (up to 1,000,000,000), including source record number and lane, followed by a warning total. Equal waits do not warn; omitting the option emits no warnings or total. Invalid input suppresses the final total.
+
 The parser accepts integer minutes from 0 through 1,000,000 and lane identifiers of 1–32 letters, digits, `_`, or `-`. A lane may not accumulate beyond 1,000,000,000 minutes. It rejects malformed columns, negative or nonnumeric values, and out-of-order arrivals. It does not infer missing people, model breaks or priority lanes, or read CSV quoting; later feature stages can add those deliberately.

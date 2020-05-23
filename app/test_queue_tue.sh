@@ -27,4 +27,15 @@ test "$(printf '' | "$awk_bin" -v summary=1 -f "$script" | tail -n 1)" = 'summar
 if printf '0\t1\tA\n' | "$awk_bin" -v summary=wat -f "$script" 2>/dev/null | grep -q summary_lane; then exit 1; fi
 default=$(printf '0\t1\tA\n' | "$awk_bin" -f "$script")
 test "$(printf '%s\n' "$default" | wc -l | tr -d ' ')" -eq 2
+printf '0\t5\tA\n1\t2\tA\n' | "$awk_bin" -v warn_wait=4 -f "$script" >"$tmp/warn.out" 2>"$tmp/warn.err"
+test "$(wc -l <"$tmp/warn.out" | tr -d ' ')" -eq 3
+if grep -q warning: "$tmp/warn.err"; then exit 1; fi
+grep -q 'warning_total	0' "$tmp/warn.err"
+printf '0\t5\tA\n1\t2\tA\n' | "$awk_bin" -v warn_wait=3 -f "$script" >"$tmp/warn2.out" 2>"$tmp/warn2.err"
+grep -q 'warning: record 2 lane A waited 4 minutes' "$tmp/warn2.err"
+grep -q 'warning_total	1' "$tmp/warn2.err"
+if printf '0\t1\tA\n' | "$awk_bin" -v warn_wait=-1 -f "$script" >/dev/null 2>&1; then exit 1; fi
+if printf '0\t1\tA\n' | "$awk_bin" -v warn_wait=wat -f "$script" >/dev/null 2>&1; then exit 1; fi
+if printf '0\t1\tA\n-1\t1\tA\n' | "$awk_bin" -v warn_wait=0 -f "$script" >"$tmp/bad.out" 2>"$tmp/bad.err"; then exit 1; fi
+if grep -q warning_total "$tmp/bad.err"; then exit 1; fi
 echo 'queue-tue CLI tests: deterministic scheduling and 4 invalid-input checks passed'
