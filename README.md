@@ -24,4 +24,6 @@ Pass `-v max_wait=N` to mark customers whose wait would be strictly greater than
 
 Pass `-v utilization=1` together with `-v summary=1` for three additional per-lane metrics: `busy_span_min` from the first served start through the last served finish, `idle_min` inside that span after served service is removed, and `utilization_percent`. Left customers do not affect these metrics. A zero-length span reports zero idle time and 0.00 percent; the option is rejected without a summary or with another value.
 
+Pass `-v summary_only=1` together with `-v summary=1` to emit only the summary header and lane rows. This is useful when piping aggregate results; all records are still validated and scheduled, exclusions, max-wait statuses, warnings, and utilization columns retain their normal semantics. The option is rejected without `summary=1` or with another value.
+
 The parser accepts integer minutes from 0 through 1,000,000 and lane identifiers of 1–32 letters, digits, `_`, or `-`. A lane may not accumulate beyond 1,000,000,000 minutes. It rejects malformed columns, negative or nonnumeric values, and out-of-order arrivals. It does not infer missing people, model breaks or priority lanes, or read CSV quoting; later feature stages can add those deliberately.

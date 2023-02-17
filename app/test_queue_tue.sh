@@ -65,4 +65,9 @@ left_util=$(printf '0\t5\tA\n1\t1\tA\n5\t1\tA\n' | "$awk_bin" -v summary=1 -v ut
 printf '%s\n' "$left_util" | grep -q 'A	2	1	6	0.00	0	6	6	0	100.00'
 if printf '0\t1\tA\n' | "$awk_bin" -v utilization=1 -f "$script" >/dev/null 2>&1; then exit 1; fi
 if printf '0\t1\tA\n' | "$awk_bin" -v summary=1 -v utilization=wat -f "$script" >/dev/null 2>&1; then exit 1; fi
+full_summary=$(printf '0\t2\tA\n1\t1\tA\n2\t3\tB\n' | "$awk_bin" -v summary=1 -v max_wait=0 -v utilization=1 -f "$script")
+only_summary=$(printf '0\t2\tA\n1\t1\tA\n2\t3\tB\n' | "$awk_bin" -v summary=1 -v summary_only=1 -v max_wait=0 -v utilization=1 -f "$script")
+test "$only_summary" = "$(printf '%s\n' "$full_summary" | tail -n 3)"
+if printf '0\t1\tA\n' | "$awk_bin" -v summary_only=1 -f "$script" >/dev/null 2>&1; then exit 1; fi
+if printf '0\t1\tA\n' | "$awk_bin" -v summary=1 -v summary_only=wat -f "$script" >/dev/null 2>&1; then exit 1; fi
 echo 'queue-tue CLI tests: deterministic scheduling and 4 invalid-input checks passed'
