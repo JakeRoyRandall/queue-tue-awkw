@@ -12,7 +12,10 @@ Created September 2026 as retrospective author artwork for the calendar garden, 
 4	1	A
 EOF
 sh app/test_queue_tue.sh
+sh app/test_baseline_parity.sh path/to/baseline-queue-tue.awk
 ```
+
+`app/test_baseline_parity.sh` compares the active implementation with the supplied baseline across legacy option combinations, including stdout, stderr, and exit status. A baseline path is required; frozen snapshots are intentionally not assumed to exist in a public checkout.
 
 Pass `-v summary=1` for a second receipt section with per-lane customer count, total service, mean wait to two decimals, maximum wait, and finish minute. Other summary values are rejected; the default output is unchanged.
 
