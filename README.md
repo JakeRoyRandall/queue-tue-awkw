@@ -18,4 +18,6 @@ Pass `-v summary=1` for a second receipt section with per-lane customer count, t
 
 Pass `-v warn_wait=N` to emit stderr warnings for waits strictly greater than the nonnegative threshold `N` (up to 1,000,000,000), including source record number and lane, followed by a warning total. Equal waits do not warn; omitting the option emits no warnings or total. Invalid input suppresses the final total.
 
+Pass `-v exclude=LANE[,LANE...]` to omit one or more existing lanes before scheduling. Exclusions are deduplicated, bounded to 100 lanes, and validated against the input; excluded records do not advance any lane clock or appear in summaries.
+
 The parser accepts integer minutes from 0 through 1,000,000 and lane identifiers of 1–32 letters, digits, `_`, or `-`. A lane may not accumulate beyond 1,000,000,000 minutes. It rejects malformed columns, negative or nonnumeric values, and out-of-order arrivals. It does not infer missing people, model breaks or priority lanes, or read CSV quoting; later feature stages can add those deliberately.

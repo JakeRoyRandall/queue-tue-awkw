@@ -20,6 +20,9 @@ if printf '1000001\t1\tA\n' | "$awk_bin" -f "$script" >/dev/null 2>&1; then exit
 same=$(printf '0\t2\tA\n0\t3\tA\n' | "$awk_bin" -f "$script")
 test "$(printf '%s\n' "$same" | sed -n '2p')" = '0	2	A	0	0	2'
 test "$(printf '%s\n' "$same" | sed -n '3p')" = '0	3	A	2	2	5'
+excluded=$(printf '0\t5\tA\n1\t2\tA\n2\t3\tB\n' | "$awk_bin" -v exclude=A -f "$script"); test "$(printf '%s\n' "$excluded" | wc -l | tr -d ' ')" -eq 2; test "$(printf '%s\n' "$excluded" | sed -n '2p')" = '2	3	B	0	2	5'
+excluded_twice=$(printf '0\t5\tA\n1\t2\tA\n2\t3\tB\n' | "$awk_bin" -v exclude=A,A -f "$script"); test "$excluded" = "$excluded_twice"
+if printf '0\t1\tA\n' | "$awk_bin" -v exclude=missing -f "$script" >/dev/null 2>&1; then exit 1; fi
 summary=$(printf '0\t5\tA\n1\t2\tA\n2\t3\tB\n' | "$awk_bin" -v summary=1 -f "$script")
 printf '%s\n' "$summary" | grep -q 'A	2	7	2.00	4	7'
 printf '%s\n' "$summary" | grep -q 'B	1	3	0.00	0	5'
